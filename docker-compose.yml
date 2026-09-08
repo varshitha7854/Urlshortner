@@ -1,16 +1,17 @@
 services:
-  postgres:
-    image: postgres:17-alpine
+  mysql:
+    image: mysql:8.4
     environment:
-      POSTGRES_DB: urlshortener
-      POSTGRES_USER: urlshortener
-      POSTGRES_PASSWORD: urlshortener
+      MYSQL_DATABASE: urlshortener
+      MYSQL_USER: urlshortener
+      MYSQL_PASSWORD: urlshortener
+      MYSQL_ROOT_PASSWORD: root
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U urlshortener -d urlshortener"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uurlshortener", "-purlshortener"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -32,7 +33,7 @@ services:
     build: .
     profiles: ["app"]
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/urlshortener
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/urlshortener
       SPRING_DATASOURCE_USERNAME: urlshortener
       SPRING_DATASOURCE_PASSWORD: urlshortener
       SPRING_DATA_REDIS_HOST: redis
@@ -40,11 +41,11 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
 
 volumes:
-  postgres_data:
+  mysql_data:
   redis_data:
